@@ -1,5 +1,6 @@
 package com.mycompany.auction.frontend.dsk.server.service;
 
+import com.mycompany.auction.frontend.dsk.server.Main;
 import java.io.IOException;
 
 public class ClientService {

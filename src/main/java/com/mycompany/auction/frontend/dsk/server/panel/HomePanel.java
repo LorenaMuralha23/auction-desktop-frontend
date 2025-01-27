@@ -93,11 +93,10 @@ public class HomePanel extends javax.swing.JPanel {
     private void loginBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_loginBtnMouseClicked
         String cpf = cpfField.getText();
         try {
-            
             loginService.loginUser(cpf);
-            
+            Thread multicastThread = new Thread(Main.multicastService);
+            multicastThread.start();
         } catch (HeadlessException | IOException e) {
-            
         }
     }//GEN-LAST:event_loginBtnMouseClicked
 
