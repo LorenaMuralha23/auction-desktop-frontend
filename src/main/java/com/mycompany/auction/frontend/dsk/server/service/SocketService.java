@@ -45,7 +45,10 @@ public class SocketService {
 
             switch (jsonNode.get("login_status").asText()) {
                 case "SUCCESS":
-                    Main.multicastService.joinGroup(jsonNode.get("group_address").asText(), jsonNode.get("group_port").asInt());
+                  
+                    Main.multicastService.joinGroup(jsonNode.get("group_address").asText(),
+                            jsonNode.get("group_port").asInt(), jsonNode);
+                    
                     break;
             }
 

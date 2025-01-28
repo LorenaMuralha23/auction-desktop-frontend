@@ -40,7 +40,10 @@ public class LoginService {
         }
         return true;
     }
+
+    public Client getClientLogged() {
+        return clientLogged;
+    }
     
-  
 
 }

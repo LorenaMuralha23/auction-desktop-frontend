@@ -4,6 +4,15 @@
  */
 package com.mycompany.auction.frontend.dsk.server.panel;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+import com.mycompany.auction.frontend.dsk.server.Main;
+import java.io.IOException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 /**
  *
  * @author USER
@@ -35,9 +44,9 @@ public class GamePanel extends javax.swing.JPanel {
         minimumBidField = new javax.swing.JTextField();
         jLabel4 = new javax.swing.JLabel();
         winningPlayerField = new javax.swing.JTextField();
-        jLabel5 = new javax.swing.JLabel();
-        currentBidField = new javax.swing.JTextField();
         raiseBidBtn = new javax.swing.JButton();
+        yourNameField = new javax.swing.JTextField();
+        jLabel6 = new javax.swing.JLabel();
 
         productNameField.setEditable(false);
         productNameField.addActionListener(new java.awt.event.ActionListener() {
@@ -60,16 +69,16 @@ public class GamePanel extends javax.swing.JPanel {
 
         winningPlayerField.setEditable(false);
 
-        jLabel5.setText("Current Bid");
-
-        currentBidField.setEditable(false);
-
         raiseBidBtn.setText("Raise the Bid ");
         raiseBidBtn.addMouseListener(new java.awt.event.MouseAdapter() {
             public void mouseClicked(java.awt.event.MouseEvent evt) {
                 raiseBidBtnMouseClicked(evt);
             }
         });
+
+        yourNameField.setEditable(false);
+
+        jLabel6.setText("You:");
 
         javax.swing.GroupLayout mainPanelLayout = new javax.swing.GroupLayout(mainPanel);
         mainPanel.setLayout(mainPanelLayout);
@@ -84,45 +93,44 @@ public class GamePanel extends javax.swing.JPanel {
                     .addComponent(jLabel2)
                     .addComponent(minimumBidField, javax.swing.GroupLayout.PREFERRED_SIZE, 332, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel3)
+                    .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(winningPlayerField, javax.swing.GroupLayout.PREFERRED_SIZE, 332, javax.swing.GroupLayout.PREFERRED_SIZE)
+                        .addComponent(jLabel4))
                     .addGroup(mainPanelLayout.createSequentialGroup()
-                        .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(winningPlayerField, javax.swing.GroupLayout.PREFERRED_SIZE, 332, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel4))
+                        .addComponent(raiseBidBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 196, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(currentBidField, javax.swing.GroupLayout.PREFERRED_SIZE, 332, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addComponent(jLabel5)))
-                    .addComponent(raiseBidBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 196, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(36, Short.MAX_VALUE))
+                            .addComponent(jLabel6)
+                            .addComponent(yourNameField, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE))))
+                .addContainerGap(373, Short.MAX_VALUE))
         );
         mainPanelLayout.setVerticalGroup(
             mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(mainPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                .addComponent(jLabel1)
+                .addGap(5, 5, 5)
+                .addComponent(productNameField, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                .addComponent(jLabel2)
+                .addGap(5, 5, 5)
+                .addComponent(startPriceField, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(18, 18, 18)
+                .addComponent(jLabel3)
+                .addGap(5, 5, 5)
+                .addComponent(minimumBidField, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(68, 68, 68)
+                .addComponent(jLabel4)
+                .addGap(5, 5, 5)
+                .addComponent(winningPlayerField, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGap(67, 67, 67)
+                .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(raiseBidBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addGroup(mainPanelLayout.createSequentialGroup()
-                        .addComponent(jLabel5)
-                        .addGap(5, 5, 5)
-                        .addComponent(currentBidField, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(mainPanelLayout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(5, 5, 5)
-                        .addComponent(productNameField, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(jLabel2)
-                        .addGap(5, 5, 5)
-                        .addComponent(startPriceField, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(18, 18, 18)
-                        .addComponent(jLabel3)
-                        .addGap(5, 5, 5)
-                        .addComponent(minimumBidField, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addGap(68, 68, 68)
-                        .addComponent(jLabel4)
-                        .addGap(5, 5, 5)
-                        .addComponent(winningPlayerField, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addGap(49, 49, 49)
-                .addComponent(raiseBidBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(68, Short.MAX_VALUE))
+                        .addComponent(jLabel6)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(yourNameField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(50, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -138,26 +146,67 @@ public class GamePanel extends javax.swing.JPanel {
     }// </editor-fold>//GEN-END:initComponents
 
     private void productNameFieldActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_productNameFieldActionPerformed
-        // TODO add your handling code here:
     }//GEN-LAST:event_productNameFieldActionPerformed
 
     private void raiseBidBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_raiseBidBtnMouseClicked
-        // TODO add your handling code here:
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            ObjectNode jsonNode = objectMapper.createObjectNode();
+            int minimumBid = Integer.valueOf(minimumBidField.getText());
+
+            jsonNode.put("operation", "RAISE BID");
+            jsonNode.put("username", Main.loginService.getClientLogged().getUsername());
+            jsonNode.put("bid", minimumBid);
+
+            Main.multicastService.sendMessageToGroup(jsonNode.toString());
+        } catch (IOException ex) {
+            Logger.getLogger(GamePanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }//GEN-LAST:event_raiseBidBtnMouseClicked
 
+    public void updateAuctionRoundScreenInfo(String message) {
+        try {
+            yourNameField.setText(Main.loginService.getClientLogged().getUsername());
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(message);
+
+            String startPriceTxt = String.valueOf(jsonNode.get("start_price").asInt());
+            
+            productNameField.setText(jsonNode.get("product").asText());
+            startPriceField.setText(startPriceTxt);
+            minimumBidField.setText(jsonNode.get("minimumBid").asText());
+            winningPlayerField.setText(jsonNode.get("current-winner").asText());
+//            productNameField.setText(jsonNode.get("timeToStart").asText());
+//            productNameField.setText(jsonNode.get("timeToEnd").asText());
+
+        } catch (JsonProcessingException ex) {
+            Logger.getLogger(GamePanel.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    public void updateWinnerAndCurrentPrice(String message) throws JsonProcessingException {
+        ObjectMapper objectMapper = new ObjectMapper();
+        JsonNode jsonNode = objectMapper.readTree(message);
+
+        String currentPriceTxt = String.valueOf(jsonNode.get("current-price").asInt());
+
+        startPriceField.setText(currentPriceTxt);
+        winningPlayerField.setText(jsonNode.get("current-winner").asText());
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JTextField currentBidField;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
-    private javax.swing.JLabel jLabel5;
+    private javax.swing.JLabel jLabel6;
     private javax.swing.JPanel mainPanel;
     private javax.swing.JTextField minimumBidField;
     private javax.swing.JTextField productNameField;
     private javax.swing.JButton raiseBidBtn;
     private javax.swing.JTextField startPriceField;
     private javax.swing.JTextField winningPlayerField;
+    private javax.swing.JTextField yourNameField;
     // End of variables declaration//GEN-END:variables
 }

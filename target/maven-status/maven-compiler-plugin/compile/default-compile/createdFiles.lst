@@ -1,8 +1,8 @@
+com\mycompany\auction\frontend\dsk\server\Main.class
+com\mycompany\auction\frontend\dsk\server\service\SocketService.class
 com\mycompany\auction\frontend\dsk\server\service\LoginService.class
 com\mycompany\auction\frontend\dsk\server\frames\MainFrame.class
 com\mycompany\auction\frontend\dsk\server\panel\HomePanel.class
-com\mycompany\auction\frontend\dsk\server\Main.class
 com\mycompany\auction\frontend\dsk\server\service\ClientService.class
-com\mycompany\auction\frontend\dsk\server\service\SocketService.class
 com\mycompany\auction\frontend\dsk\server\frames\MainFrame$1.class
 com\mycompany\auction\frontend\dsk\server\panel\HomePanel$1.class

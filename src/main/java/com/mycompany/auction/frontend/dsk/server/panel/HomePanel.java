@@ -19,13 +19,13 @@ import javax.swing.JOptionPane;
  */
 public class HomePanel extends javax.swing.JPanel {
 
-    private LoginService loginService;
+    
     private ObjectNode jsonNode;
     ObjectMapper objectMapper = new ObjectMapper();
 
     public HomePanel() {
         initComponents();
-        loginService = new LoginService();
+        Main.loginService = new LoginService();
     }
 
     /**
@@ -93,7 +93,7 @@ public class HomePanel extends javax.swing.JPanel {
     private void loginBtnMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_loginBtnMouseClicked
         String cpf = cpfField.getText();
         try {
-            loginService.loginUser(cpf);
+            Main.loginService.loginUser(cpf);
             Thread multicastThread = new Thread(Main.multicastService);
             multicastThread.start();
         } catch (HeadlessException | IOException e) {
