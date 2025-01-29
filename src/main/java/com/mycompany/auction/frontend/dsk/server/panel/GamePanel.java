@@ -9,9 +9,15 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mycompany.auction.frontend.dsk.server.Main;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JOptionPane;
+import javax.swing.Timer;
 
 /**
  *
@@ -22,6 +28,8 @@ public class GamePanel extends javax.swing.JPanel {
     /**
      * Creates new form GamePanel
      */
+    private Timer swingTimer;
+
     public GamePanel() {
         initComponents();
     }
@@ -47,6 +55,8 @@ public class GamePanel extends javax.swing.JPanel {
         raiseBidBtn = new javax.swing.JButton();
         yourNameField = new javax.swing.JTextField();
         jLabel6 = new javax.swing.JLabel();
+        timerField = new javax.swing.JTextField();
+        timerLabel = new javax.swing.JLabel();
 
         productNameField.setEditable(false);
         productNameField.addActionListener(new java.awt.event.ActionListener() {
@@ -59,7 +69,7 @@ public class GamePanel extends javax.swing.JPanel {
 
         startPriceField.setEditable(false);
 
-        jLabel2.setText("Starting Price");
+        jLabel2.setText("Price");
 
         jLabel3.setText("Minimum Bid");
 
@@ -80,6 +90,10 @@ public class GamePanel extends javax.swing.JPanel {
 
         jLabel6.setText("You:");
 
+        timerField.setEditable(false);
+
+        timerLabel.setText("Time to End:");
+
         javax.swing.GroupLayout mainPanelLayout = new javax.swing.GroupLayout(mainPanel);
         mainPanel.setLayout(mainPanelLayout);
         mainPanelLayout.setHorizontalGroup(
@@ -87,22 +101,25 @@ public class GamePanel extends javax.swing.JPanel {
             .addGroup(mainPanelLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(startPriceField, javax.swing.GroupLayout.PREFERRED_SIZE, 332, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(productNameField, javax.swing.GroupLayout.PREFERRED_SIZE, 332, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel1)
-                    .addComponent(startPriceField, javax.swing.GroupLayout.PREFERRED_SIZE, 332, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel2)
                     .addComponent(minimumBidField, javax.swing.GroupLayout.PREFERRED_SIZE, 332, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel3)
-                    .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addComponent(winningPlayerField, javax.swing.GroupLayout.PREFERRED_SIZE, 332, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(jLabel4))
+                    .addComponent(winningPlayerField, javax.swing.GroupLayout.PREFERRED_SIZE, 332, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(jLabel4)
                     .addGroup(mainPanelLayout.createSequentialGroup()
                         .addComponent(raiseBidBtn, javax.swing.GroupLayout.PREFERRED_SIZE, 196, javax.swing.GroupLayout.PREFERRED_SIZE)
                         .addGap(18, 18, 18)
                         .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel6)
                             .addComponent(yourNameField, javax.swing.GroupLayout.PREFERRED_SIZE, 131, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                .addContainerGap(373, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 101, Short.MAX_VALUE)
+                .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                    .addComponent(timerField, javax.swing.GroupLayout.PREFERRED_SIZE, 199, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(timerLabel))
+                .addGap(73, 73, 73))
         );
         mainPanelLayout.setVerticalGroup(
             mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -112,9 +129,13 @@ public class GamePanel extends javax.swing.JPanel {
                 .addGap(5, 5, 5)
                 .addComponent(productNameField, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jLabel2)
+                .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(jLabel2)
+                    .addComponent(timerLabel))
                 .addGap(5, 5, 5)
-                .addComponent(startPriceField, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addGroup(mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                    .addComponent(startPriceField, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
+                    .addComponent(timerField, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
                 .addComponent(jLabel3)
                 .addGap(5, 5, 5)
@@ -130,7 +151,7 @@ public class GamePanel extends javax.swing.JPanel {
                         .addComponent(jLabel6)
                         .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                         .addComponent(yourNameField, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(50, Short.MAX_VALUE))
+                .addContainerGap(37, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -194,6 +215,33 @@ public class GamePanel extends javax.swing.JPanel {
         startPriceField.setText(currentPriceTxt);
         winningPlayerField.setText(jsonNode.get("current-winner").asText());
     }
+    
+    public void startCountdown(LocalDateTime timeToEnd) {
+        swingTimer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Obtém o tempo restante
+                Duration duration = Duration.between(LocalDateTime.now(), timeToEnd);
+                long secondsLeft = duration.getSeconds();
+
+                if (secondsLeft > 0) {
+                    // Converte segundos para HH:mm:ss
+                    long hours = secondsLeft / 3600;
+                    long minutes = (secondsLeft % 3600) / 60;
+                    long seconds = secondsLeft % 60;
+
+                    // Atualiza o JTextField na tela
+                    timerField.setText(String.format("%02d:%02d:%02d", hours, minutes, seconds));
+                } else {
+                    // Tempo acabou! Para o Timer e exibe mensagem
+                    swingTimer.stop();
+                    timerField.setText("00:00:00");
+                }
+            }
+        });
+
+        swingTimer.start(); // Inicia o Timer
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
@@ -206,6 +254,8 @@ public class GamePanel extends javax.swing.JPanel {
     private javax.swing.JTextField productNameField;
     private javax.swing.JButton raiseBidBtn;
     private javax.swing.JTextField startPriceField;
+    private javax.swing.JTextField timerField;
+    private javax.swing.JLabel timerLabel;
     private javax.swing.JTextField winningPlayerField;
     private javax.swing.JTextField yourNameField;
     // End of variables declaration//GEN-END:variables

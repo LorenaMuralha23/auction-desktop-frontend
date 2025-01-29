@@ -8,12 +8,12 @@ package com.mycompany.auction.frontend.dsk.server.panel;
  *
  * @author USER
  */
-public class LoadingPanel extends javax.swing.JPanel {
+public class BreakPanel extends javax.swing.JPanel {
 
     /**
      * Creates new form LoadingPanel
      */
-    public LoadingPanel() {
+    public BreakPanel() {
         initComponents();
     }
 
@@ -28,23 +28,31 @@ public class LoadingPanel extends javax.swing.JPanel {
 
         mainPanel = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
+        timeField = new javax.swing.JLabel();
 
         jLabel1.setFont(new java.awt.Font("Dialog", 0, 24)); // NOI18N
         jLabel1.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        jLabel1.setText("Loading...");
+        jLabel1.setText("The next round will start at:");
+
+        timeField.setFont(new java.awt.Font("Dialog", 0, 24)); // NOI18N
+        timeField.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        timeField.setText("time");
 
         javax.swing.GroupLayout mainPanelLayout = new javax.swing.GroupLayout(mainPanel);
         mainPanel.setLayout(mainPanelLayout);
         mainPanelLayout.setHorizontalGroup(
             mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, 436, Short.MAX_VALUE)
+            .addComponent(timeField, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
         );
         mainPanelLayout.setVerticalGroup(
             mainPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, mainPanelLayout.createSequentialGroup()
-                .addContainerGap(122, Short.MAX_VALUE)
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(119, 119, 119))
+            .addGroup(mainPanelLayout.createSequentialGroup()
+                .addGap(96, 96, 96)
+                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 43, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                .addComponent(timeField)
+                .addContainerGap(114, Short.MAX_VALUE))
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
@@ -59,9 +67,14 @@ public class LoadingPanel extends javax.swing.JPanel {
         );
     }// </editor-fold>//GEN-END:initComponents
 
-
+    public void updateTime(String time){
+        timeField.setText(time);
+    }
+    
+    
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JLabel jLabel1;
     private javax.swing.JPanel mainPanel;
+    private javax.swing.JLabel timeField;
     // End of variables declaration//GEN-END:variables
 }
