@@ -3,17 +3,26 @@ package com.mycompany.auction.frontend.dsk.server.service;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mycompany.auction.frontend.dsk.server.Main;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.net.DatagramPacket;
 import java.net.InetAddress;
 import java.net.MulticastSocket;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class MulticastService implements Runnable {
 
     private MulticastSocket socket;
     private InetAddress group = null;
     private int port;
+    private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     public void joinGroup(String multicastGroup, int port, JsonNode jsonNode) throws IOException {
         this.socket = new MulticastSocket(port);
@@ -23,9 +32,13 @@ public class MulticastService implements Runnable {
 
         System.out.println("Joined Multicast group!");
         if (jsonNode.get("auction_status").asBoolean()) {
-                Main.showScreen(Main.gamePanel);
-            Main.gamePanel.updateAuctionRoundScreenInfo(jsonNode.toString());
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            ObjectNode jsonObject = (ObjectNode) jsonNode;
             
+            jsonObject.put("operation", "SET INFO");
+
+            mapOperation(jsonObject.toString());
         } else {
             Main.showScreen(Main.loadingPanel);
         }
@@ -46,6 +59,7 @@ public class MulticastService implements Runnable {
                 JsonNode jsonNode = objectMapper.readTree(message);
 
                 if (!jsonNode.get("username").asText().equals(Main.loginService.getClientLogged().getUsername())) {
+                    System.out.println("\nMensagem recebida: " + jsonNode.toPrettyString());
                     mapOperation(message);
                 }
             }
@@ -68,13 +82,33 @@ public class MulticastService implements Runnable {
 
         switch (operation) {
             case "SET INFO":
-                Main.showScreen(Main.gamePanel);
-                Main.gamePanel.updateAuctionRoundScreenInfo(message);
+                System.out.println(message);
+                LocalDateTime timeToStart = LocalDateTime.parse(jsonNode.get("timeToStart").asText());
+                long delayToStart = Duration.between(LocalDateTime.now(), timeToStart).toMillis();
+
+                Main.showScreen(Main.loadingPanel);
+
+                if (delayToStart > 0) {
+                    scheduler.schedule(() -> {
+                        Main.showScreen(Main.gamePanel);
+                        Main.gamePanel.updateAuctionRoundScreenInfo(message);
+                    }, delayToStart, TimeUnit.MILLISECONDS);
+                } else {
+                    Main.showScreen(Main.gamePanel);
+                    Main.gamePanel.updateAuctionRoundScreenInfo(message);
+                }
+
                 break;
+
             case "UPDATE WINNER":
                 Main.gamePanel.updateWinnerAndCurrentPrice(jsonNode.toString());
                 break;
             case "RAISE BID":
+                break;
+            case "FINISH ROUND":
+                String winnerUsernmame = jsonNode.get("winner").asText();
+                Main.showScreen(Main.winnerPanel);
+                Main.winnerPanel.updateWinner(winnerUsernmame);
                 break;
         }
     }
