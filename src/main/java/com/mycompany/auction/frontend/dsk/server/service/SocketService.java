@@ -34,8 +34,11 @@ public class SocketService {
         BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
 
         String serverMessage = in.readLine();
-
-        return serverMessage;
+        
+        System.out.println("Mensagem antes de descriptografar: " + serverMessage);
+        String messageDecrypted = Main.encryptService.decrypt(serverMessage);
+        
+        return messageDecrypted;
     }
 
     public void mapResponse(String response) throws IOException {

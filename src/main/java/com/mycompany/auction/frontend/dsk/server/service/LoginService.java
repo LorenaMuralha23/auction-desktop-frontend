@@ -29,7 +29,6 @@ public class LoginService {
             ObjectNode jsonToSend = objectMapper.createObjectNode();
             
             this.clientLogged = new Client(jsonNodeFile.get("username").asText(), jsonNodeFile.get("name").asText(), jsonNodeFile.get("cpf").asText());
-            System.out.println(clientLogged);
             
             jsonToSend.put("operation", "LOGIN");
             jsonToSend.put("username", this.clientLogged.getUsername());
