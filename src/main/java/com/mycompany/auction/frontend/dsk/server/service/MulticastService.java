@@ -35,7 +35,7 @@ public class MulticastService implements Runnable {
 
             ObjectMapper objectMapper = new ObjectMapper();
             ObjectNode jsonObject = (ObjectNode) jsonNode;
-            
+
             jsonObject.put("operation", "SET INFO");
 
             mapOperation(jsonObject.toString());
@@ -84,18 +84,22 @@ public class MulticastService implements Runnable {
             case "SET INFO":
                 System.out.println(message);
                 LocalDateTime timeToStart = LocalDateTime.parse(jsonNode.get("timeToStart").asText());
+                LocalDateTime timeToEnd = LocalDateTime.parse(jsonNode.get("timeToEnd").asText());
                 long delayToStart = Duration.between(LocalDateTime.now(), timeToStart).toMillis();
 
+                System.out.println("Uou");
                 Main.showScreen(Main.loadingPanel);
 
                 if (delayToStart > 0) {
                     scheduler.schedule(() -> {
                         Main.showScreen(Main.gamePanel);
                         Main.gamePanel.updateAuctionRoundScreenInfo(message);
+                        Main.gamePanel.startCountdown(timeToEnd);
                     }, delayToStart, TimeUnit.MILLISECONDS);
                 } else {
                     Main.showScreen(Main.gamePanel);
                     Main.gamePanel.updateAuctionRoundScreenInfo(message);
+                    Main.gamePanel.startCountdown(timeToEnd);
                 }
 
                 break;
