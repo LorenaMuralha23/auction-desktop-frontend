@@ -1,12 +1,13 @@
 D:\USER (BKP)\Documents\Faculdade\6 periodo\Segurança Computacional\Nova pasta\auction-frontend-dsk-server\src\main\java\com\mycompany\auction\frontend\dsk\server\entities\Client.java
-D:\USER (BKP)\Documents\Faculdade\6 periodo\Segurança Computacional\Nova pasta\auction-frontend-dsk-server\src\main\java\com\mycompany\auction\frontend\dsk\server\frames\MainFrame.java
+D:\USER (BKP)\Documents\Faculdade\6 periodo\Segurança Computacional\Nova pasta\auction-frontend-dsk-server\src\main\java\com\mycompany\auction\frontend\dsk\server\cryptography\EncryptService.java
 D:\USER (BKP)\Documents\Faculdade\6 periodo\Segurança Computacional\Nova pasta\auction-frontend-dsk-server\src\main\java\com\mycompany\auction\frontend\dsk\server\Main.java
 D:\USER (BKP)\Documents\Faculdade\6 periodo\Segurança Computacional\Nova pasta\auction-frontend-dsk-server\src\main\java\com\mycompany\auction\frontend\dsk\server\panel\LoadingPanel.java
-D:\USER (BKP)\Documents\Faculdade\6 periodo\Segurança Computacional\Nova pasta\auction-frontend-dsk-server\src\main\java\com\mycompany\auction\frontend\dsk\server\service\SocketService.java
 D:\USER (BKP)\Documents\Faculdade\6 periodo\Segurança Computacional\Nova pasta\auction-frontend-dsk-server\src\main\java\com\mycompany\auction\frontend\dsk\server\panel\HomePanel.java
-D:\USER (BKP)\Documents\Faculdade\6 periodo\Segurança Computacional\Nova pasta\auction-frontend-dsk-server\src\main\java\com\mycompany\auction\frontend\dsk\server\service\ClientService.java
 D:\USER (BKP)\Documents\Faculdade\6 periodo\Segurança Computacional\Nova pasta\auction-frontend-dsk-server\src\main\java\com\mycompany\auction\frontend\dsk\server\service\MulticastService.java
 D:\USER (BKP)\Documents\Faculdade\6 periodo\Segurança Computacional\Nova pasta\auction-frontend-dsk-server\src\main\java\com\mycompany\auction\frontend\dsk\server\service\LoginService.java
 D:\USER (BKP)\Documents\Faculdade\6 periodo\Segurança Computacional\Nova pasta\auction-frontend-dsk-server\src\main\java\com\mycompany\auction\frontend\dsk\server\panel\BreakPanel.java
+D:\USER (BKP)\Documents\Faculdade\6 periodo\Segurança Computacional\Nova pasta\auction-frontend-dsk-server\src\main\java\com\mycompany\auction\frontend\dsk\server\frames\MainFrame.java
+D:\USER (BKP)\Documents\Faculdade\6 periodo\Segurança Computacional\Nova pasta\auction-frontend-dsk-server\src\main\java\com\mycompany\auction\frontend\dsk\server\service\SocketService.java
+D:\USER (BKP)\Documents\Faculdade\6 periodo\Segurança Computacional\Nova pasta\auction-frontend-dsk-server\src\main\java\com\mycompany\auction\frontend\dsk\server\service\ClientService.java
 D:\USER (BKP)\Documents\Faculdade\6 periodo\Segurança Computacional\Nova pasta\auction-frontend-dsk-server\src\main\java\com\mycompany\auction\frontend\dsk\server\panel\WinnerPannel.java
 D:\USER (BKP)\Documents\Faculdade\6 periodo\Segurança Computacional\Nova pasta\auction-frontend-dsk-server\src\main\java\com\mycompany\auction\frontend\dsk\server\panel\GamePanel.java

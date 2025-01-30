@@ -20,11 +20,14 @@ import javax.crypto.BadPaddingException;
 import javax.crypto.Cipher;
 import javax.crypto.IllegalBlockSizeException;
 import javax.crypto.NoSuchPaddingException;
+import javax.crypto.SecretKey;
+import javax.crypto.spec.SecretKeySpec;
 
 public class EncryptService {
 
     private final String certificatesDir = System.getProperty("user.dir");
     private MessageDigest md;
+    private SecretKey serverSymmetricKey;
 
     public EncryptService() {
         try {
@@ -38,14 +41,10 @@ public class EncryptService {
         return clientCertificateName.exists() && clientCertificateName.isFile();
     }
 
-    public void encrypt() {
-
-    }
-
-    public String decrypt(String encryptedMessage) {
+    public String decryptAssymmetric(String encryptedMessage) {
         //precisa da chave privada do cliente logado no momento. -> check
         //aplicar a chave privada para decriptografar a mensagem - check
-        //verificar se existe a key "hash" -
+        //verificar se existe a key "hash" - check
         //comparar o hash
         try {
             PrivateKey clientPrK = getClientPrivateKey(Main.loginService.getClientLogged().getCpf());
@@ -58,19 +57,66 @@ public class EncryptService {
             String decryptedMessage = new String(decryptedBytes);
             System.out.println("Mensagem decriptografada: " + decryptedMessage);
 
-            if (verifySignature(decryptedMessage)) {
-                System.out.println("Hash identico!");
-                return new String(decryptedBytes);
-            }
+//            if (verifySignature(decryptedMessage)) {
+//                System.out.println("Hash identico!");
+//            }
+            defineSecretKey(decryptedMessage);
 
+            return new String(decryptedBytes);
         } catch (IllegalBlockSizeException | BadPaddingException
                 | NoSuchAlgorithmException | NoSuchPaddingException
                 | InvalidKeyException ex) {
             Logger.getLogger(EncryptService.class.getName()).log(Level.SEVERE, null, ex);
         }
-        System.out.println("Hash não bateu");
         return null;
     }
+
+    public String encryptSymmetric(String message) {
+        System.out.println("Mensagem antes de encriptar: " + message);
+        try {
+            Cipher cipher = Cipher.getInstance("AES");
+
+            cipher.init(Cipher.ENCRYPT_MODE, this.serverSymmetricKey);
+
+            byte[] messageBytes = message.getBytes();
+
+            byte[] encryptedBytes = cipher.doFinal(messageBytes);
+            
+            System.out.println("Mensagem encriptada: " + Base64.getEncoder().encodeToString(encryptedBytes));
+            
+            return Base64.getEncoder().encodeToString(encryptedBytes);
+        } catch (Exception e) {
+            System.out.println("Deu erro encriptando");
+            System.out.println(e.getMessage());
+        }
+        
+        return null;
+    }
+    
+    public String decryptSymmetric(String encryptMessage) {
+        System.out.println("Mensagem ENCRIPTADA: " + encryptMessage );
+        try {
+            Cipher cipher = Cipher.getInstance("AES/ECB/PKCS5Padding");
+
+            cipher.init(Cipher.DECRYPT_MODE, this.serverSymmetricKey);
+
+            // Decodificar a mensagem criptografada que está em base64
+            byte[] encryptedBytes = Base64.getDecoder().decode(encryptMessage);
+            
+            // Descriptografar os dados
+            byte[] decryptedBytes = cipher.doFinal(encryptedBytes);
+            
+            System.out.println("Mensagem decriptografada: " + new String(decryptedBytes));
+
+            return new String(decryptedBytes);
+        } catch (Exception e) {
+            System.out.println("Deu erro ao tentar decriptografar");
+            System.out.println(e.getMessage());
+        }
+        return null;
+    }
+    
+    
 
     public PrivateKey getClientPrivateKey(String CPF) {
         // Caminho do arquivo JSON
@@ -112,13 +158,12 @@ public class EncryptService {
             System.out.println("Verificando se tem o hash");
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(decryptedMessage);
-            
 
             if (jsonNode.has("hash")) {
                 System.out.println("Tem o hash. Comparando...");
                 String hashSended = jsonNode.get("hash").asText();
                 System.out.println("Hash enviado: " + hashSended);
-                
+
                 String messageReceivedHash = calculateHash(decryptedMessage);
                 System.out.println("Hash calculado: " + messageReceivedHash);
 
@@ -146,5 +191,23 @@ public class EncryptService {
         }
 
         return hexString.toString();
+    }
+
+    private void defineSecretKey(String decryptedMessage) {
+        System.out.println("Definindo a simmetric key!");
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(decryptedMessage);
+
+            if (jsonNode.has("symmetric-key")) {
+                byte[] keyBytes = Base64.getDecoder().decode(jsonNode.get("symmetric-key").asText());
+                System.out.println("Symmetric key: " +  Base64.getEncoder().encodeToString(keyBytes));
+                this.serverSymmetricKey = new SecretKeySpec(keyBytes, "AES");
+            }
+
+        } catch (JsonProcessingException e) {
+            System.out.println("Deu erro definindo a simmetric key");
+            System.out.println(e.getMessage());
+        }
     }
 }

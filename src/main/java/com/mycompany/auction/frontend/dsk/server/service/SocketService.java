@@ -7,8 +7,10 @@ import com.mycompany.auction.frontend.dsk.server.Main;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
 import java.io.PrintWriter;
 import java.net.Socket;
+import java.nio.charset.StandardCharsets;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -22,10 +24,13 @@ public class SocketService {
     }
 
     public void sendMessageToServer(String message) throws IOException {
-        PrintWriter out = new PrintWriter(socket.getOutputStream(), true);
+        PrintWriter out = new PrintWriter(new OutputStreamWriter(socket.getOutputStream(), StandardCharsets.UTF_8), true);
 
         // Envia uma mensagem ao servidor
+        System.out.println("Enviando messagem...");
+        
         out.println(message);
+        System.out.println("Mensagem enviada!");
         mapResponse(receiveMessageFromServer());
     }
 
@@ -35,8 +40,7 @@ public class SocketService {
 
         String serverMessage = in.readLine();
         
-        System.out.println("Mensagem antes de descriptografar: " + serverMessage);
-        String messageDecrypted = Main.encryptService.decrypt(serverMessage);
+        String messageDecrypted = Main.encryptService.decryptAssymmetric(serverMessage);
         
         return messageDecrypted;
     }
