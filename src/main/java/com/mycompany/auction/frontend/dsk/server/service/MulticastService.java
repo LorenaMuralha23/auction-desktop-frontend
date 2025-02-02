@@ -33,29 +33,28 @@ public class MulticastService implements Runnable {
         socket.joinGroup(group);
 
         System.out.println("Joined Multicast group!");
-
+        Main.showScreen(Main.loadingPanel);
     }
 
     public void listenForMessages() {
         try {
-            byte[] buffer = new byte[2048]; // Tamanho do buffer para armazenar os pacotes recebidos
+            byte[] buffer = new byte[2048];
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
             ObjectMapper objectMapper = new ObjectMapper();
             System.out.println("\nListening for messages in the multicast group...");
 
             while (true) {
-                Arrays.fill(buffer, (byte) 0); // Limpa o buffer antes de receber uma nova mensagem
+                Arrays.fill(buffer, (byte) 0);
                 socket.receive(packet);
 
                 String message = new String(packet.getData(), 0, packet.getLength());
+                System.out.println("Address de quem enviou: " + packet.getAddress());
+                System.out.println("Mensagem recebida: " + message);
 
-                String decryptedMsg = Main.encryptService.decryptSymmetric(message);
-                System.out.println("Mensagem recebida: " + decryptedMsg);
-
-                JsonNode jsonNode = objectMapper.readTree(decryptedMsg);
+                JsonNode jsonNode = objectMapper.readTree(message);
 
                 if (!jsonNode.get("username").asText().equals(Main.loginService.getClientLogged().getUsername())) {
-                    mapOperation(decryptedMsg);
+                    mapOperation(message);
                 }
             }
         } catch (IOException e) {
@@ -65,8 +64,7 @@ public class MulticastService implements Runnable {
     }
 
     public void sendMessageToGroup(String message) throws IOException {
-        String encryptedMsg = Main.encryptService.encryptSymmetric(message);
-        DatagramPacket packet = new DatagramPacket(encryptedMsg.getBytes(), encryptedMsg.length(), this.group, this.port);
+        DatagramPacket packet = new DatagramPacket(message.getBytes(), message.length(), this.group, this.port);
 
         socket.send(packet);
         System.out.println("\n[MESSAGE SEND TO MULTICAST GROUP]");
@@ -80,25 +78,13 @@ public class MulticastService implements Runnable {
         switch (operation) {
             case "SET INFO":
                 System.out.println(message);
-                LocalDateTime timeToStart = LocalDateTime.parse(jsonNode.get("timeToStart").asText());
                 LocalDateTime timeToEnd = LocalDateTime.parse(jsonNode.get("timeToEnd").asText());
-                long delayToStart = Duration.between(LocalDateTime.now(), timeToStart).toMillis();
 
-                if (!gameIsScheduled) { //se for true, o usuario ja recebeu a info do game
-                    Main.showScreen(Main.loadingPanel);
-
-                    if (delayToStart > 0) {
-                        scheduler.schedule(() -> {
-                            this.gameIsScheduled = true;
-                            Main.showScreen(Main.gamePanel);
-                            Main.gamePanel.updateAuctionRoundScreenInfo(message);
-                            Main.gamePanel.startCountdown(timeToEnd);
-                        }, delayToStart, TimeUnit.MILLISECONDS);
-                    } else {
-                        Main.showScreen(Main.gamePanel);
-                        Main.gamePanel.updateAuctionRoundScreenInfo(message);
-                        Main.gamePanel.startCountdown(timeToEnd);
-                    }
+                if (!gameIsScheduled) {//se for true, o usuario ja recebeu a info do game
+                    this.gameIsScheduled = true;
+                    Main.showScreen(Main.gamePanel);
+                    Main.gamePanel.updateAuctionRoundScreenInfo(message);
+                    Main.gamePanel.startCountdown(timeToEnd);
                 }
 
                 break;

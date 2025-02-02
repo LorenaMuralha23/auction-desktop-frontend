@@ -40,9 +40,7 @@ public class SocketService {
 
         String serverMessage = in.readLine();
         
-        String messageDecrypted = Main.encryptService.decryptAssymmetric(serverMessage);
-        
-        return messageDecrypted;
+        return serverMessage;
     }
 
     public void mapResponse(String response) throws IOException {
