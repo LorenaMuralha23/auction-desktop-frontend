@@ -48,13 +48,12 @@ public class MulticastService implements Runnable {
                 socket.receive(packet);
 
                 String message = new String(packet.getData(), 0, packet.getLength());
-                System.out.println("Address de quem enviou: " + packet.getAddress());
-                System.out.println("Mensagem recebida: " + message);
-
-                JsonNode jsonNode = objectMapper.readTree(message);
+                String decryptedMessage = Main.encryptService.decryptSymmetric(message);
+                System.out.println("Mensagem decriptografada: " + decryptedMessage);
+                JsonNode jsonNode = objectMapper.readTree(decryptedMessage);
 
                 if (!jsonNode.get("username").asText().equals(Main.loginService.getClientLogged().getUsername())) {
-                    mapOperation(message);
+                    mapOperation(decryptedMessage);
                 }
             }
         } catch (IOException e) {
@@ -64,7 +63,8 @@ public class MulticastService implements Runnable {
     }
 
     public void sendMessageToGroup(String message) throws IOException {
-        DatagramPacket packet = new DatagramPacket(message.getBytes(), message.length(), this.group, this.port);
+        String messageEncrypted = Main.encryptService.encryptSymmetric(message);
+        DatagramPacket packet = new DatagramPacket(messageEncrypted.getBytes(), messageEncrypted.length(), this.group, this.port);
 
         socket.send(packet);
         System.out.println("\n[MESSAGE SEND TO MULTICAST GROUP]");
