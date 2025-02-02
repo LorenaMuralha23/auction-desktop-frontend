@@ -1,5 +1,6 @@
 package com.mycompany.auction.frontend.dsk.server;
 
+import com.mycompany.auction.frontend.dsk.server.cryptography.EncryptService;
 import com.mycompany.auction.frontend.dsk.server.frames.MainFrame;
 import com.mycompany.auction.frontend.dsk.server.panel.BreakPanel;
 import com.mycompany.auction.frontend.dsk.server.panel.GamePanel;
@@ -24,6 +25,8 @@ public class Main {
     public static ClientService clientService;
     public static MulticastService multicastService = new MulticastService();
     public static LoginService loginService;
+    
+    public static EncryptService encryptService = new EncryptService();
 
     public static void main(String[] args) {
         showScreen(homePanel);

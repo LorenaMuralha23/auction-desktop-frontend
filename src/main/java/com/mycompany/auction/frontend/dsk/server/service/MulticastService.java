@@ -13,6 +13,7 @@ import java.net.MulticastSocket;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
+import java.util.Arrays;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ScheduledExecutorService;
 import java.util.concurrent.TimeUnit;
@@ -23,6 +24,7 @@ public class MulticastService implements Runnable {
     private InetAddress group = null;
     private int port;
     private ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private boolean gameIsScheduled = false;
 
     public void joinGroup(String multicastGroup, int port, JsonNode jsonNode) throws IOException {
         this.socket = new MulticastSocket(port);
@@ -31,45 +33,38 @@ public class MulticastService implements Runnable {
         socket.joinGroup(group);
 
         System.out.println("Joined Multicast group!");
-        if (jsonNode.get("auction_status").asBoolean()) {
-
-            ObjectMapper objectMapper = new ObjectMapper();
-            ObjectNode jsonObject = (ObjectNode) jsonNode;
-
-            jsonObject.put("operation", "SET INFO");
-
-            mapOperation(jsonObject.toString());
-        } else {
-            Main.showScreen(Main.loadingPanel);
-        }
+        Main.showScreen(Main.loadingPanel);
     }
 
     public void listenForMessages() {
         try {
-            byte[] buffer = new byte[256]; // Tamanho do buffer para armazenar os pacotes recebidos
+            byte[] buffer = new byte[2048];
             DatagramPacket packet = new DatagramPacket(buffer, buffer.length);
             ObjectMapper objectMapper = new ObjectMapper();
             System.out.println("\nListening for messages in the multicast group...");
 
             while (true) {
+                Arrays.fill(buffer, (byte) 0);
                 socket.receive(packet);
 
                 String message = new String(packet.getData(), 0, packet.getLength());
-
-                JsonNode jsonNode = objectMapper.readTree(message);
+                String decryptedMessage = Main.encryptService.decryptSymmetric(message);
+                System.out.println("Mensagem decriptografada: " + decryptedMessage);
+                JsonNode jsonNode = objectMapper.readTree(decryptedMessage);
 
                 if (!jsonNode.get("username").asText().equals(Main.loginService.getClientLogged().getUsername())) {
-                    System.out.println("\nMensagem recebida: " + jsonNode.toPrettyString());
-                    mapOperation(message);
+                    mapOperation(decryptedMessage);
                 }
             }
         } catch (IOException e) {
+            System.out.println("Deu erro F");
             System.out.println(e.getMessage());
         }
     }
 
     public void sendMessageToGroup(String message) throws IOException {
-        DatagramPacket packet = new DatagramPacket(message.getBytes(), message.length(), this.group, this.port);
+        String messageEncrypted = Main.encryptService.encryptSymmetric(message);
+        DatagramPacket packet = new DatagramPacket(messageEncrypted.getBytes(), messageEncrypted.length(), this.group, this.port);
 
         socket.send(packet);
         System.out.println("\n[MESSAGE SEND TO MULTICAST GROUP]");
@@ -83,20 +78,10 @@ public class MulticastService implements Runnable {
         switch (operation) {
             case "SET INFO":
                 System.out.println(message);
-                LocalDateTime timeToStart = LocalDateTime.parse(jsonNode.get("timeToStart").asText());
                 LocalDateTime timeToEnd = LocalDateTime.parse(jsonNode.get("timeToEnd").asText());
-                long delayToStart = Duration.between(LocalDateTime.now(), timeToStart).toMillis();
 
-                System.out.println("Uou");
-                Main.showScreen(Main.loadingPanel);
-
-                if (delayToStart > 0) {
-                    scheduler.schedule(() -> {
-                        Main.showScreen(Main.gamePanel);
-                        Main.gamePanel.updateAuctionRoundScreenInfo(message);
-                        Main.gamePanel.startCountdown(timeToEnd);
-                    }, delayToStart, TimeUnit.MILLISECONDS);
-                } else {
+                if (!gameIsScheduled) {//se for true, o usuario ja recebeu a info do game
+                    this.gameIsScheduled = true;
                     Main.showScreen(Main.gamePanel);
                     Main.gamePanel.updateAuctionRoundScreenInfo(message);
                     Main.gamePanel.startCountdown(timeToEnd);
@@ -110,6 +95,7 @@ public class MulticastService implements Runnable {
             case "RAISE BID":
                 break;
             case "FINISH ROUND":
+                this.gameIsScheduled = false;
                 String winnerUsernmame = jsonNode.get("winner").asText();
                 Main.showScreen(Main.winnerPanel);
                 Main.winnerPanel.updateWinner(winnerUsernmame);
