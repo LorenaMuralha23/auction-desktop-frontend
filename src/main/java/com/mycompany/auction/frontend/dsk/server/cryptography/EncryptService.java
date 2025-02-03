@@ -7,6 +7,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mycompany.auction.frontend.dsk.server.Main;
 import java.io.File;
 import java.io.IOException;
+import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -38,7 +39,7 @@ public class EncryptService {
 
     public EncryptService() {
         try {
-            this.md = MessageDigest.getInstance("SHA-256");
+            this.md = MessageDigest.getInstance("SHA-1");
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(EncryptService.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -77,7 +78,7 @@ public class EncryptService {
         return null;
     }
 
-   public String encryptSymmetric(String message) {
+    public String encryptSymmetric(String message) {
         try {
             byte[] iv = "1234567890123456".getBytes(StandardCharsets.UTF_8); // Exemplo de IV fixo
             IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
@@ -111,7 +112,7 @@ public class EncryptService {
             cipher.init(Cipher.DECRYPT_MODE, serverSymmKey, ivParameterSpec);
             byte[] decodedBytes = Base64.getDecoder().decode(encryptedMessage);
             byte[] decryptedBytes = cipher.doFinal(decodedBytes);
-            
+
             return new String(decryptedBytes);
 
         } catch (NoSuchAlgorithmException | NoSuchPaddingException
@@ -188,7 +189,8 @@ public class EncryptService {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(decryptedMessage);
-            ObjectNode objectNode = (ObjectNode) jsonNode;
+            System.out.println("Mensagem no jsonNode: " + jsonNode.toString());
+            ObjectNode objectNode = objectMapper.createObjectNode();
 
             if (jsonNode.has("hash") && jsonNode.has("symmetric-key")) {
                 String hash = jsonNode.get("hash").asText();
@@ -199,27 +201,20 @@ public class EncryptService {
                 SecretKey serverSymmKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
                 this.serverSymmetricKey = serverSymmKey;
 
-                System.out.println("Hash antes de decriptografar: " + hash);
                 String hashDecrypted = decryptSymmetric(hash);
-                System.out.println("Hash depois de decriptografar: " + hashDecrypted);
+                
+                //Criando um json identico ao do servidor, afim de tirar qualquer erro por questão de conversão
+                objectNode.put("group_address", jsonNode.get("group_address").asText());
+                objectNode.put("group_port", jsonNode.get("group_port").asInt());
+                objectNode.put("login_status", jsonNode.get("login_status"));
+                objectNode.put("auction_status", jsonNode.get("auction_status"));
+                
+                String calculateHashTxt = calculateHash(objectNode.toString());
 
-                objectNode.remove("hash");
-
-                String calculatedHash = calculateHash(objectNode.toString());
-
-                byte[] decryptedHashBytes = Base64.getDecoder().decode(hashDecrypted);
-                byte[] calculatedHashBytes = Base64.getDecoder().decode(calculatedHash);
-                boolean isEqual = Arrays.equals(decryptedHashBytes, calculatedHashBytes);
-
-                // Se não for igual, imprimir mais detalhes
-                if (!isEqual) {
-                    System.out.println("Hashes não são iguais:");
-                    System.out.println("Hash decriptografado (bytes): " + Arrays.toString(decryptedHashBytes));
-                    System.out.println("Hash calculado (bytes): " + Arrays.toString(calculatedHashBytes));
-                }
-
+                boolean isEqual = hashDecrypted.equals(calculateHashTxt);
+                System.out.println("Comparação: " + hashDecrypted + " <-> " + calculateHashTxt);
+                
                 return isEqual;
-
             }
         } catch (JsonProcessingException ex) {
             System.out.println("Foi descriptografado incorretamente.");
