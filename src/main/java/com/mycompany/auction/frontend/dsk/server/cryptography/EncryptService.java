@@ -17,6 +17,8 @@ import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
 import java.security.SecureRandom;
+import java.security.Signature;
+import java.security.SignatureException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Arrays;
@@ -39,7 +41,7 @@ public class EncryptService {
 
     public EncryptService() {
         try {
-            this.md = MessageDigest.getInstance("SHA-1");
+            this.md = MessageDigest.getInstance("SHA-256");
         } catch (NoSuchAlgorithmException ex) {
             Logger.getLogger(EncryptService.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -47,6 +49,20 @@ public class EncryptService {
 
     public boolean isClientRegistered(File clientCertificateName) {
         return clientCertificateName.exists() && clientCertificateName.isFile();
+    }
+
+    public boolean verifyMessage(String decryptedMessage, byte[] hashEncrypted) {
+
+        byte[] messageHash = md.digest(decryptedMessage.getBytes(StandardCharsets.UTF_8));
+
+        if (verifySignedHash(messageHash, hashEncrypted)){
+            System.out.println("Hash bateu!");
+            defineSecretKey(decryptedMessage);
+            return true;
+        }
+        
+        System.out.println("Não bateu");
+        return false;
     }
 
     public String decryptAssymmetric(String encryptedMessage) {
@@ -61,13 +77,6 @@ public class EncryptService {
 
             String decryptedMessage = new String(decryptedBytes);
             System.out.println("Mensagem decriptografada: " + decryptedMessage);
-
-            if (verifySignature(decryptedMessage)) {
-                System.out.println("Hash identico!");
-            }
-            //pegar a chave simétrica
-            System.out.println("O hash não bateu");
-            defineSecretKey(decryptedMessage);
 
             return new String(decryptedBytes);
         } catch (IllegalBlockSizeException | BadPaddingException
@@ -185,72 +194,22 @@ public class EncryptService {
         return null;
     }
 
-    public boolean verifySignature(String decryptedMessage) {
+    public boolean verifySignedHash(byte[] hashBytes, byte[] signedHashBytes) {
         try {
-            ObjectMapper objectMapper = new ObjectMapper();
-            JsonNode jsonNode = objectMapper.readTree(decryptedMessage);
-            System.out.println("Mensagem no jsonNode: " + jsonNode.toString());
-            ObjectNode objectNode = objectMapper.createObjectNode();
-
-            if (jsonNode.has("hash") && jsonNode.has("symmetric-key")) {
-                String hash = jsonNode.get("hash").asText();
-                String symmetricKeyTxt = jsonNode.get("symmetric-key").asText();
-
-                byte[] decodedKey = Base64.getDecoder().decode(symmetricKeyTxt);
-
-                SecretKey serverSymmKey = new SecretKeySpec(decodedKey, 0, decodedKey.length, "AES");
-                this.serverSymmetricKey = serverSymmKey;
-
-                String hashDecrypted = decryptSymmetric(hash);
-                
-                //Criando um json identico ao do servidor, afim de tirar qualquer erro por questão de conversão
-                objectNode.put("group_address", jsonNode.get("group_address").asText());
-                objectNode.put("group_port", jsonNode.get("group_port").asInt());
-                objectNode.put("login_status", jsonNode.get("login_status"));
-                objectNode.put("auction_status", jsonNode.get("auction_status"));
-                
-                String calculateHashTxt = calculateHash(objectNode.toString());
-
-                boolean isEqual = hashDecrypted.equals(calculateHashTxt);
-                System.out.println("Comparação: " + hashDecrypted + " <-> " + calculateHashTxt);
-                
-                return isEqual;
-            }
-        } catch (JsonProcessingException ex) {
-            System.out.println("Foi descriptografado incorretamente.");
+            PublicKey serverPublicKey = getServerPublicKey();
+            Signature signature = Signature.getInstance("SHA256withRSA");
+            signature.initVerify(serverPublicKey);
+            signature.update(hashBytes);
+            return signature.verify(signedHashBytes); // Retorna true se a assinatura for válida
+        } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
+            Logger.getLogger(EncryptService.class.getName()).log(Level.SEVERE, null, e);
         }
-
         return false;
     }
 
-    public String decryptHash(String hash) {
-        try {
-            PublicKey serverPublicKey = getServerPublicKey();
-            Cipher cipher = Cipher.getInstance("RSA");
-            cipher.init(Cipher.DECRYPT_MODE, serverPublicKey);
-
-            System.out.println("Decriptando o hash...");
-            byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(hash));
-
-            String decryptedHash = new String(decryptedBytes);
-            System.out.println("Hash decriptografado: " + decryptedHash);
-            return decryptedHash;
-        } catch (NoSuchAlgorithmException | NoSuchPaddingException
-                | InvalidKeyException | IllegalBlockSizeException
-                | BadPaddingException ex) {
-            Logger.getLogger(EncryptService.class.getName()).log(Level.SEVERE, null, ex);
-        }
-        return "";
-    }
-
-    public String calculateHash(String message) {
+    public byte[] calculateHash(String message) {
         byte[] hashBytes = md.digest(message.getBytes(StandardCharsets.UTF_8));
-
-        byte[] truncatedHash = Arrays.copyOf(hashBytes, 8);
-
-        String base64Hash = Base64.getEncoder().encodeToString(truncatedHash);
-
-        return base64Hash;
+        return hashBytes;
     }
 
     private void defineSecretKey(String decryptedMessage) {
@@ -259,8 +218,8 @@ public class EncryptService {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(decryptedMessage);
 
-            if (jsonNode.has("symmetric-key")) {
-                byte[] keyBytes = Base64.getDecoder().decode(jsonNode.get("symmetric-key").asText());
+            if (jsonNode.has("symmetric_key")) {
+                byte[] keyBytes = Base64.getDecoder().decode(jsonNode.get("symmetric_key").asText());
                 System.out.println("Symmetric key: " + Base64.getEncoder().encodeToString(keyBytes));
                 this.serverSymmetricKey = new SecretKeySpec(keyBytes, "AES");
             }

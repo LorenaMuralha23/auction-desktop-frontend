@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.mycompany.auction.frontend.dsk.server.Main;
 import java.io.BufferedReader;
+import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
@@ -28,21 +29,37 @@ public class SocketService {
 
         // Envia uma mensagem ao servidor
         System.out.println("Enviando messagem...");
-        
+
         out.println(message);
         System.out.println("Mensagem enviada!");
-        mapResponse(receiveMessageFromServer());
+        receiveData();
+//        mapResponse(receiveMessageFromServer());
     }
 
     // Método para receber mensagem do servidor
-    public String receiveMessageFromServer() throws IOException {
-        BufferedReader in = new BufferedReader(new InputStreamReader(socket.getInputStream()));
+    private void receiveData() {
+        try (
+                 DataInputStream in = new DataInputStream(this.socket.getInputStream());) {
+            int encryptedLength = in.readInt();
+            byte[] encryptedBytes = new byte[encryptedLength];
+            in.readFully(encryptedBytes);
 
-        String serverMessage = in.readLine();
-        
-        String decryptMessage = Main.encryptService.decryptAssymmetric(serverMessage);
-        
-        return decryptMessage;
+            // Recebe o tamanho do hash
+            int hashLength = in.readInt();
+            byte[] hashBytes = new byte[hashLength];
+            in.readFully(hashBytes);
+
+            // Converte os bytes para strings
+            String encryptedResponse = new String(encryptedBytes, StandardCharsets.UTF_8);
+            String decryptedResponse = Main.encryptService.decryptAssymmetric(encryptedResponse);
+
+            if(Main.encryptService.verifyMessage(decryptedResponse, hashBytes)){
+                mapResponse(decryptedResponse);
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     public void mapResponse(String response) throws IOException {
@@ -52,10 +69,10 @@ public class SocketService {
 
             switch (jsonNode.get("login_status").asText()) {
                 case "SUCCESS":
-                  
+
                     Main.multicastService.joinGroup(jsonNode.get("group_address").asText(),
                             jsonNode.get("group_port").asInt(), jsonNode);
-                    
+
                     break;
             }
 
