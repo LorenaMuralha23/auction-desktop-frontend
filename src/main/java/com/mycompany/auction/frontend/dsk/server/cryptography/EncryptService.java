@@ -3,11 +3,9 @@ package com.mycompany.auction.frontend.dsk.server.cryptography;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.mycompany.auction.frontend.dsk.server.Main;
 import java.io.File;
 import java.io.IOException;
-import java.math.BigDecimal;
 import java.nio.charset.StandardCharsets;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -16,12 +14,10 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
 import java.security.PublicKey;
-import java.security.SecureRandom;
 import java.security.Signature;
 import java.security.SignatureException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
-import java.util.Arrays;
 import java.util.Base64;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -56,27 +52,20 @@ public class EncryptService {
         byte[] messageHash = md.digest(decryptedMessage.getBytes(StandardCharsets.UTF_8));
 
         if (verifySignedHash(messageHash, hashEncrypted)){
-            System.out.println("Hash bateu!");
             defineSecretKey(decryptedMessage);
             return true;
         }
         
-        System.out.println("Não bateu");
         return false;
     }
 
     public String decryptAssymmetric(String encryptedMessage) {
         try {
-
             PrivateKey clientPrK = getClientPrivateKey(Main.loginService.getClientLogged().getCpf());
             Cipher cipher = Cipher.getInstance("RSA");
             cipher.init(Cipher.DECRYPT_MODE, clientPrK);
 
-            System.out.println("Decriptando...");
             byte[] decryptedBytes = cipher.doFinal(Base64.getDecoder().decode(encryptedMessage));
-
-            String decryptedMessage = new String(decryptedBytes);
-            System.out.println("Mensagem decriptografada: " + decryptedMessage);
 
             return new String(decryptedBytes);
         } catch (IllegalBlockSizeException | BadPaddingException
@@ -110,12 +99,11 @@ public class EncryptService {
     }
 
     public String decryptSymmetric(String encryptedMessage) {
-        System.out.println("Decriptografando simetricamente...");
         try {
-            byte[] iv = "1234567890123456".getBytes(StandardCharsets.UTF_8); // Mesmo IV fixo usado na criptografia
+            byte[] iv = "1234567890123456".getBytes(StandardCharsets.UTF_8); 
             IvParameterSpec ivParameterSpec = new IvParameterSpec(iv);
 
-            SecretKey serverSymmKey = this.serverSymmetricKey; // Obtém a chave secreta
+            SecretKey serverSymmKey = this.serverSymmetricKey; 
 
             Cipher cipher = Cipher.getInstance("AES/CBC/PKCS5Padding");
             cipher.init(Cipher.DECRYPT_MODE, serverSymmKey, ivParameterSpec);
@@ -134,29 +122,23 @@ public class EncryptService {
     }
 
     public PrivateKey getClientPrivateKey(String CPF) {
-        // Caminho do arquivo JSON
         File jsonFile = new File(this.certificatesDir + "\\clients\\" + CPF + ".json");
 
-        // Verifica se o cliente está registrado
         if (isClientRegistered(jsonFile)) {
             try {
                 ObjectMapper objectMapper = new ObjectMapper();
-                JsonNode rootNode = objectMapper.readTree(jsonFile); // Lê o arquivo JSON
+                JsonNode rootNode = objectMapper.readTree(jsonFile); 
 
-                // Recupera o nó da chave privada
                 JsonNode privateKeyNode = rootNode.get("private-key");
                 if (privateKeyNode != null) {
-                    String privateKeyBase64 = privateKeyNode.asText(); // Obtém a chave em Base64
+                    String privateKeyBase64 = privateKeyNode.asText(); 
 
-                    // Decodifica a chave privada de Base64 para bytes
                     byte[] privateKeyBytes = Base64.getDecoder().decode(privateKeyBase64);
 
-                    // Cria a especificação de chave usando os bytes decodificados
                     PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(privateKeyBytes);
 
-                    // Utiliza o KeyFactory para gerar a chave privada a partir da especificação
                     KeyFactory keyFactory = KeyFactory.getInstance("RSA");
-                    return keyFactory.generatePrivate(keySpec); // Retorna a chave privada
+                    return keyFactory.generatePrivate(keySpec); 
                 } else {
                     System.out.println("Campo 'private-key' não encontrado no arquivo.");
                 }
@@ -200,7 +182,7 @@ public class EncryptService {
             Signature signature = Signature.getInstance("SHA256withRSA");
             signature.initVerify(serverPublicKey);
             signature.update(hashBytes);
-            return signature.verify(signedHashBytes); // Retorna true se a assinatura for válida
+            return signature.verify(signedHashBytes); 
         } catch (NoSuchAlgorithmException | InvalidKeyException | SignatureException e) {
             Logger.getLogger(EncryptService.class.getName()).log(Level.SEVERE, null, e);
         }
@@ -213,14 +195,12 @@ public class EncryptService {
     }
 
     private void defineSecretKey(String decryptedMessage) {
-        System.out.println("Definindo a simmetric key!");
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(decryptedMessage);
 
             if (jsonNode.has("symmetric_key")) {
                 byte[] keyBytes = Base64.getDecoder().decode(jsonNode.get("symmetric_key").asText());
-                System.out.println("Symmetric key: " + Base64.getEncoder().encodeToString(keyBytes));
                 this.serverSymmetricKey = new SecretKeySpec(keyBytes, "AES");
             }
 

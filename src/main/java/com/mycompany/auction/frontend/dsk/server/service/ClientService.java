@@ -1,14 +1,14 @@
 package com.mycompany.auction.frontend.dsk.server.service;
 
-import com.mycompany.auction.frontend.dsk.server.Main;
+import com.mycompany.auction.frontend.dsk.server.MainServer;
 import java.io.IOException;
 
 public class ClientService {
     
-    private SocketService socketService;
+    private MainServer socketService;
 
     public ClientService() throws IOException {
-        this.socketService = new SocketService();
+        this.socketService = new MainServer();
     }
     
     public void sendLoginMessageToServer(String message) throws IOException{

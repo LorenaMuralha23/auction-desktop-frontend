@@ -7,7 +7,6 @@ import com.mycompany.auction.frontend.dsk.server.Main;
 import com.mycompany.auction.frontend.dsk.server.entities.Client;
 import java.io.File;
 import java.io.IOException;
-import java.math.BigDecimal;
 
 public class LoginService {
 
@@ -22,7 +21,7 @@ public class LoginService {
         File jsonFile = new File(this.certificatesDir + "\\" + CPF + ".json");
         if (isClientRegistered(jsonFile)) {
 
-            Main.clientService = new ClientService(); //conecta ao servidor
+            Main.clientService = new ClientService();
             
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNodeFile = objectMapper.readTree(jsonFile);
