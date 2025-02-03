@@ -34,9 +34,9 @@ public class LoginService {
             jsonToSend.put("cpf", this.clientLogged.getCpf());
             
             Main.clientService.sendLoginMessageToServer(jsonToSend.toString());
-
+            return true;
         }
-        return true;
+        return false;
     }
 
     public Client getClientLogged() {
